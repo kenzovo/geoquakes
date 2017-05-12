@@ -23,7 +23,7 @@ callAjax();
 }); //end documentready
 
 
-function onSubmitReqSuccess(returnArray){
+function onSubmitReqSuccess(json){
     var center ={lat: 30.2682, lng: -97.74295};
 
     var map = new google.maps.Map(document.getElementById('map'), {
@@ -31,10 +31,35 @@ function onSubmitReqSuccess(returnArray){
       zoom: 3
     });
 
-    for(i=0; i<=returnArray.features.length; i++) {
-      $("#info").append(`<p>${returnArray.features[i].properties.place}</p>`);
-      var pinlocations = {lat:returnArray.features[i].geometry.coordinates[1], lng: returnArray.features[i].geometry.coordinates[0]};
-      console.log(pinlocations);
+    json.features.forEach(function(earthquake){
+      var titleSplit = earthquake.properties.title.split(" ");
+      var protoTitleSplit = titleSplit.slice(6, titleSplit.length);
+//*************************
+        var thePresent = new Date();
+        var quakeTime = earthquake.properties.time;
+        var days = Math.floor((thePresent-quakeTime)/(60*60*1000*24));
+        var hours = Math.floor((thePresent-quakeTime)/(60*60*1000));
+        var min = Math.floor((thePresent-quakeTime) /60000);
+
+
+          if (hours === 1) {
+            var timeHolder = ' hour ago in:'
+          } else if (hours < 1){
+            hours=min;
+            timeHolder = ' minutes ago in:'
+          } else if (hours > 48){
+            hours=days;
+            timeHolder = ' days ago in:'
+          } else {
+            timeHolder = ' hours ago in:'
+          }
+
+        $('#info').append(hours + timeHolder);
+//************************
+      $("#info").append(`<p><b>${protoTitleSplit.join(" ")}</b></p>`);
+      $("#info").append(`<p>${new Date(earthquake.properties.time)}</p><br></br>`);
+
+      var pinlocations = {lat:earthquake.geometry.coordinates[1], lng: earthquake.geometry.coordinates[0]};
 
       var marker = new google.maps.Marker({
           position: pinlocations,
@@ -43,7 +68,7 @@ function onSubmitReqSuccess(returnArray){
           icon: earthquakeIcon,
           shape: shape
       });
-  }
+    });
 }
 
 function onError(xhr, status, errorThrown) {
