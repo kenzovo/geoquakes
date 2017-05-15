@@ -2,8 +2,7 @@
 var weekly_quakes_endpoint = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson";
 
 var shape = {
-   coords: [1, 1, 1, 20, 18, 20, 18, 1],
-   type: 'poly'
+   type: 'circle'
  };
 
 
@@ -16,7 +15,7 @@ $(document).ready(function() {
 
 
 function onSubmitReqSuccess(json){
-  //  map generator
+  //  map initiator
     var center ={lat: 30.2682, lng: -97.74295};
     var map = new google.maps.Map(document.getElementById('map'), {
       center: center,
@@ -50,13 +49,15 @@ function onSubmitReqSuccess(json){
       // append information from JSON
       $('#info').append(hours + timeHolder);
       $("#info").append(`<p><b>${protoTitleSplit.join(" ")}</b></p>`);
-      $("#info").append(`<p>${new Date(earthquake.properties.time)}</p><br></br>`);
+      $("#info").append(`<p>${new Date(earthquake.properties.time)}</p><hr><br></br>`);
 
       var pinlocations = {lat:earthquake.geometry.coordinates[1], lng: earthquake.geometry.coordinates[0]};
       var scaleSize = Math.pow(2, earthquake.properties.mag) / 2;
       var marker = new google.maps.Marker({
           position: pinlocations,
           map: map,
+          // title: protoTitleSplit,
+          animation: google.maps.Animation.DROP,
           // title: protoTitleSplit,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
@@ -68,6 +69,28 @@ function onSubmitReqSuccess(json){
           },
           shape: shape
       });
+
+      var contentString = '<div id="information">'+
+      '<div id="popUp">'+
+      '</div>'+
+      '<h3 class="firstHeading">'+earthquake.properties.place+'</h3>'+
+      '<div id="bodyContent">'+
+      '<p><b>Earthquake near '+protoTitleSplit.join(" ")+'</b>, </p>'+
+      '<p>Magnitude: '+earthquake.properties.mag+'</p>'+
+      '</div>'+
+      '</div>';
+
+      var infowindow = new google.maps.InfoWindow({
+        content: contentString
+      });
+
+      google.maps.event.addListener(marker, 'click', function() {
+        infowindow.open(map, this);
+        setTimeout(function(){
+            win.close()
+        }, 5000);
+      });
+
     });
 }
 
